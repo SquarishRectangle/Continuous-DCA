@@ -1,0 +1,4 @@
+alpaca==1.0.0
+pydantic==2.5.3
+ratelimit==2.2.1
+rich==13.7.0
