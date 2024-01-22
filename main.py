@@ -15,7 +15,7 @@ from config import CFG
 tradeAPI = TradingClient(**CFG.alpaca_auth)
 dataAPI = StockHistoricalDataClient(**CFG.alpaca_auth)
 
-with open('sp100.txt') as f:
+with open('sp500.txt') as f:
     TICKERS = f.read().split('\n')
 
 def set_target():
@@ -23,11 +23,11 @@ def set_target():
     eq = float(tradeAPI.get_account().equity) 
     num = len(TICKERS)
     TARGET = round(eq/num, 2)
-    MIN_DELTA = max(1, round(TARGET/1000, 2))
+    MIN_DELTA = max(1, round(TARGET/100, 2))
     print(f'Equity: ${eq} | Tickers: {num} | Target: ${TARGET} | Min Delta: ${MIN_DELTA}')
 
 @sleep_and_retry
-@limits(1, 3)
+@limits(10, 9)
 def set_orders(ticker: str):
     try:
         value = float(tradeAPI.get_open_position(ticker).market_value)
@@ -48,8 +48,10 @@ def set_orders(ticker: str):
 def main():
     print('Starting')
     set_target()
+    tickers = random.sample(TICKERS, k=len(TICKERS))
     while True:
-        for ticker in random.sample(TICKERS, k=len(TICKERS)):
+        set_target()
+        for ticker in tickers:
             clock = tradeAPI.get_clock()
             if not clock.is_open:
                 nt = clock.next_open.timestamp()
@@ -57,6 +59,7 @@ def main():
                 print(f'Sleeping {timedelta(seconds=int(t))} until {datetime.fromtimestamp(nt)}')
                 time.sleep(t)
                 set_target()
+                tickers = random.sample(TICKERS, k=len(TICKERS))
             set_orders(ticker)
     
 
